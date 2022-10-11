@@ -3,6 +3,11 @@ from random import randint as rand
 
 players = 1
 
+hardcodedchecks = [ # couldn't be bothered to make this efficient-er so I just stole the checks from my old tic tac toe and remade them more efficiently.
+    [0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 6, 6, 7],
+    [1, 2, 3, 6, 4, 8, 2, 4, 7, 5, 8, 4, 6, 4, 5, 6, 4, 7, 8, 6, 8, 7, 8, 8],
+    [2, 1, 6, 3, 8, 5, 0, 7, 4, 8, 5, 6, 4, 5, 4, 0, 3, 1, 0, 2, 2, 8, 7, 6]
+]
 board = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 availableboard = [True, True, True, True, True, True, True, True, True]
 
@@ -13,10 +18,10 @@ class TicTacToeBoard:
     def __init__(self):
         self.screen = turtle.Screen()
         self.screen.setup(600, 600)
-        self.screen.bgpic("ttticons/tttboard.gif")
-        self.screen.addshape("ttticons/x.gif")
-        self.screen.addshape("ttticons/o.gif")
-        self.screen.addshape("ttticons/empty.gif")
+        self.screen.bgpic("tttboard.gif")
+        self.screen.addshape("x.gif")
+        self.screen.addshape("o.gif")
+        self.screen.addshape("empty.gif")
         self.screen.tracer(0)
     
     def updateScreen(self): self.screen.update()
@@ -24,9 +29,9 @@ class TicTacToeBoard:
 
     def end(self, team):
         global boardobj, tiles, endgame
-        if team - 1 and team: self.screen.bgpic("ttticons/xwin.gif")
-        elif team: self.screen.bgpic("ttticons/owin.gif")
-        else: self.screen.bgpic("ttticons/tiewin.gif")
+        if team - 1 and team: self.screen.bgpic("xwin.gif")
+        elif team: self.screen.bgpic("owin.gif")
+        else: self.screen.bgpic("tiewin.gif")
         for i in tiles: i.turtle.hideturtle()
         self.screen.update()
         self.screen.onclick(self.die)
@@ -38,7 +43,8 @@ class Tile:
         self.locations = [-200, 0, 200]
         self.turtle = turtle.Turtle()
         self.turtle.pu()
-        self.turtle.shape("ttticons/empty.gif")
+        self.turtle.lt(90)
+        self.turtle.shape("empty.gif")
         self.turtle.goto(self.locations[column], self.locations[row])
         self.tiled = False
     
@@ -52,8 +58,8 @@ class Tile:
 
     def setShape(self, shape, availableboard, boardobj, board):
         if not self.tiled:
-            if shape - 1: self.turtle.shape("ttticons/x.gif")
-            else: self.turtle.shape("ttticons/o.gif")
+            if shape - 1: self.turtle.shape("x.gif")
+            else: self.turtle.shape("o.gif")
             self.tiled = True
             availableboard[self.column + self.row * 3] = False
             board[self.column + self.row * 3] = shape
@@ -68,8 +74,11 @@ for row in range(3):
         tiles.append(Tile(column, row))
 
 def checkForAIMove(board, availableboard, team):
-    pass
-
+    global hardcodedchecks
+    
+    for i in range(len(hardcodedchecks[0])):
+        if board[hardcodedchecks[0][i]] == board[hardcodedchecks[1][i]] == team and availableboard[hardcodedchecks[2][i]]: return hardcodedchecks[2][i]
+    return -1
 def clickTrigger(x, y):
     global turn, players
     if x <= -96: xcor = 0
@@ -91,7 +100,12 @@ def clickTrigger(x, y):
     if not x: return False
     if wincondition: return False
     if players == 1:
-        computerTile = rand(0,8)
+        computerTile = checkForAIMove(board, availableboard, 1)
+        if computerTile == -1:
+            computerTile = checkForAIMove(board, availableboard, 2)
+        if computerTile == -1:
+            computerTile = rand(0,8)
+        
         while not tiles[computerTile].setShape(turn, availableboard, boardobj, board):
             computerTile = rand(0,8)
         
